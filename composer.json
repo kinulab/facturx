@@ -6,6 +6,12 @@
             "Kinulab\\Facturx\\": "src/"
         }
     },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/kinulab/facturx.git"
+        }
+    ],
     "type": "library",
     "license": "MIT",
     "authors": [
