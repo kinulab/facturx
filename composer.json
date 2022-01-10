@@ -1,0 +1,20 @@
+{
+    "name": "kinulab/facturx",
+    "description": "A comprehensible PHP library to write Factur-X/ZUGFeRD XML files",
+    "autoload": {
+        "psr-4": {
+            "Kinulab\\Facturx\\": "src/"
+        }
+    },
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Johan Desmyter",
+            "email": "johan@etic.yt"
+        }
+    ],
+    "require": {
+        "atgp/factur-x": "^1.0"
+    }
+}
