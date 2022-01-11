@@ -105,8 +105,26 @@ EOL;
 
     protected static function getAddress(Address $address)
     {
-        $address = sprintf('<ram:CountryID>%s</ram:CountryID>', $address->getCountryId());
-        return $address;
+        $xmlAddress = sprintf('<ram:CountryID>%s</ram:CountryID>', $address->getCountryId());
+        if($address->getLines()){
+            $lines = array_filter(array_map('trim', explode("\n", $address->getLines())));
+            if(count($lines) > 3){
+                throw new \Exception("The address lines attribut must not exceed 3 lines.");
+            }
+
+            $lines = array_combine(array_slice(['One', 'Two', 'Three'], 0, count($lines)), $lines);
+            foreach($lines as $i => $line){
+                $xmlAddress .= "<ram:Line$i>$line</ram:LineTwo>";
+            }
+        }
+        if($address->getZipCode()){
+            $xmlAddress .= sprintf('<ram:PostcodeCode>%s</ram:PostcodeCode>', $address->getZipCode());
+        }
+        if($address->getCityName()){
+            $xmlAddress .= sprintf('<ram:CityName>%s</ram:CityName>', $address->getCityName());
+        }
+
+        return $xmlAddress;
     }
 
     protected static function getTradeSettlement(CrossIndustryInvoiceMinimum $invoice)
