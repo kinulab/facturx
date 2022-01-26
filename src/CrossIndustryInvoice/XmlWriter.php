@@ -9,8 +9,8 @@ class XmlWriter
     {
         $exchangeDocumentContext = self::getExchangeDocumentContext($invoice);
         $exchangeDocument = self::getExchangeDocument($invoice);
-        $seller = self::getSeller($invoice);
-        $buyer = self::getBuyer($invoice);
+        $seller = self::getLegalEntity($invoice->getSeller());
+        $buyer = self::getLegalEntity($invoice->getBuyer());
         $tradeSettlement = self::getTradeSettlement($invoice);
 
         $xml = <<<EOL
@@ -24,8 +24,12 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
    $exchangeDocument
    <rsm:SupplyChainTradeTransaction>
       <ram:ApplicableHeaderTradeAgreement>
+        <ram:SellerTradeParty>
          $seller
+        </ram:SellerTradeParty>
+        <ram:BuyerTradeParty>
          $buyer
+        </ram:BuyerTradeParty>
       </ram:ApplicableHeaderTradeAgreement>
       <ram:ApplicableHeaderTradeDelivery/>
       $tradeSettlement
@@ -67,40 +71,16 @@ EOL;
         return sprintf($format, $invoice->getInvoiceNumber(), $invoice->getInvoiceType(), $invoice->getIssueDate()->format('Ymd'));
     }
 
-    protected static function getSeller(CrossIndustryInvoiceMinimum $invoice)
+    protected static function getLegalEntity(LegalEntity $legalEntity)
     {
-        $format = <<<EOL
-<ram:SellerTradeParty>
-    <ram:Name>%s</ram:Name>
-    <ram:SpecifiedLegalOrganization>
-       <ram:ID schemeID="0002">%s</ram:ID>
-    </ram:SpecifiedLegalOrganization>
-    <ram:PostalTradeAddress>
-       %s
-    </ram:PostalTradeAddress>
-    <ram:SpecifiedTaxRegistration>
-       <ram:ID schemeID="VA">%s</ram:ID>
-    </ram:SpecifiedTaxRegistration>
- </ram:SellerTradeParty>
-EOL;
-        $seller = $invoice->getSeller();
-
-        return sprintf($format, $seller->getName(), $seller->getSiret(), self::getAddress($seller->getAddress()), $seller->getVatIdentifier());
-    }
-
-    protected static function getBuyer(CrossIndustryInvoiceMinimum $invoice)
-    {
-        $format = <<<EOL
-<ram:BuyerTradeParty>
-    <ram:Name>%s</ram:Name>
-    <ram:SpecifiedLegalOrganization>
-       <ram:ID schemeID="0002">%s</ram:ID>
-    </ram:SpecifiedLegalOrganization>
-</ram:BuyerTradeParty>
-EOL;
-        $buyer = $invoice->getBuyer();
-
-        return sprintf($format, $buyer->getName(), $buyer->getVatIdentifier());
+        return
+            sprintf('<ram:Name>%s</ram:Name>', $legalEntity->getName())
+            .sprintf('<ram:SpecifiedLegalOrganization><ram:ID schemeID="0002">%s</ram:ID></ram:SpecifiedLegalOrganization>', $legalEntity->getSiret())
+            .($legalEntity->getAddress() ?
+                sprintf('<ram:PostalTradeAddress>%s</ram:PostalTradeAddress>', self::getAddress($legalEntity->getAddress())) : '')
+            .($legalEntity->getVatIdentifier() ?
+                sprintf('<ram:SpecifiedTaxRegistration><ram:ID schemeID="VA">%s</ram:ID></ram:SpecifiedTaxRegistration>', $legalEntity->getVatIdentifier()) : '')
+        ;
     }
 
     protected static function getAddress(Address $address)

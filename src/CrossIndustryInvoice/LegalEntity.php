@@ -7,7 +7,7 @@ class LegalEntity
 
     protected string $name;
     protected string $siret;
-    protected Address $address;
+    protected ?Address $address = null;
     protected string $vatIdentifier;
 
     /**
@@ -49,7 +49,7 @@ class LegalEntity
     /**
      * @return Address
      */
-    public function getAddress(): Address
+    public function getAddress(): ?Address
     {
         return $this->address;
     }
