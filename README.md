@@ -15,9 +15,11 @@ composer require kinulab/facturx
 ```php
 require 'vendor/autoload.php';
 
-$invoice = new \Kinulab\Facturx\CrossIndustryInvoice\CrossIndustryInvoiceMinimum();
+$invoice = new \Kinulab\Facturx\CrossIndustryInvoice\CrossIndustryInvoice(
+    \Kinulab\Facturx\CrossIndustryInvoice\CrossIndustryInvoice::PROFILE_MINIMUM
+);
 $invoice->setInvoiceNumber("FC123456789");
-$invoice->setInvoiceType(Kinulab\Facturx\CrossIndustryInvoice\CrossIndustryInvoiceMinimum::INVOICE_TYPE_COMMERCIAL_INVOICE);
+$invoice->setInvoiceType(Kinulab\Facturx\CrossIndustryInvoice\CrossIndustryInvoice::INVOICE_TYPE_COMMERCIAL_INVOICE);
 $invoice->setIssueDate( new \DateTime('today') );
 $invoice->setSeller( new \Kinulab\Facturx\CrossIndustryInvoice\LegalEntity() );
 $invoice->setBuyer( new \Kinulab\Facturx\CrossIndustryInvoice\LegalEntity() );

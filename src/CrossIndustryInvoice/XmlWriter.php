@@ -5,37 +5,25 @@ namespace Kinulab\Facturx\CrossIndustryInvoice;
 class XmlWriter
 {
 
-    public static function write(CrossIndustryInvoiceMinimum $invoice) : string
+    public static function write(CrossIndustryInvoice $invoice) : string
     {
-        $exchangeDocumentContext = self::getExchangeDocumentContext($invoice);
-        $exchangeDocument = self::getExchangeDocument($invoice);
-        $seller = self::getLegalEntity($invoice->getSeller());
-        $buyer = self::getLegalEntity($invoice->getBuyer());
-        $tradeSettlement = self::getTradeSettlement($invoice);
+        $xw = new \XMLWriter();
+        $xw->openMemory();
+        $xw->setIndent(true);
+        $xw->setIndentString('  ');
+        $xw->startDocument('1.0', 'UTF-8');
+        $xw->startElementNs('rsm', 'CrossIndustryInvoice', 'urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100');
+        $xw->writeAttribute('xmlns:qdt', 'urn:un:unece:uncefact:data:standard:QualifiedDataType:100');
+        $xw->writeAttribute('xmlns:ram', 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100');
+        $xw->writeAttribute('xmlns:udt', 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100');
+        $xw->writeAttribute('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance');
 
-        $xml = <<<EOL
-<?xml version='1.0' encoding='UTF-8'?>
-<rsm:CrossIndustryInvoice xmlns:qdt="urn:un:unece:uncefact:data:standard:QualifiedDataType:100"
-xmlns:ram="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100"
-xmlns:rsm="urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100"
-xmlns:udt="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100"
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-   $exchangeDocumentContext
-   $exchangeDocument
-   <rsm:SupplyChainTradeTransaction>
-      <ram:ApplicableHeaderTradeAgreement>
-        <ram:SellerTradeParty>
-         $seller
-        </ram:SellerTradeParty>
-        <ram:BuyerTradeParty>
-         $buyer
-        </ram:BuyerTradeParty>
-      </ram:ApplicableHeaderTradeAgreement>
-      <ram:ApplicableHeaderTradeDelivery/>
-      $tradeSettlement
-   </rsm:SupplyChainTradeTransaction>
-</rsm:CrossIndustryInvoice>
-EOL;
+        self::setExchangeDocumentContext($xw, $invoice);
+        self::setExchangeDocument($xw, $invoice);
+        self::setSupplyChainTradeTransaction($xw, $invoice);
+
+        $xw->endDocument();
+        $xml = $xw->outputMemory();
 
         // check that the generated XML is valid
         $validator = new \Atgp\FacturX\Facturx();
@@ -44,48 +32,86 @@ EOL;
         return $xml;
     }
 
-    protected static function getExchangeDocumentContext(CrossIndustryInvoiceMinimum $invoice)
+    protected static function setExchangeDocumentContext(\XMLWriter $xw, CrossIndustryInvoice $invoice)
     {
-
-        $format = <<<EOL
-<rsm:ExchangedDocumentContext>
-  <ram:GuidelineSpecifiedDocumentContextParameter>
-     <ram:ID>%s</ram:ID>
-  </ram:GuidelineSpecifiedDocumentContextParameter>
-</rsm:ExchangedDocumentContext>
-EOL;
-        return sprintf($format, $invoice->getSpecificationIdentifier());
+        $xw->startElement('rsm:ExchangedDocumentContext');
+            $xw->startElement('ram:BusinessProcessSpecifiedDocumentContextParameter');
+                $xw->writeElement('ram:ID', 'A1');
+            $xw->endElement();
+            $xw->startElement('ram:GuidelineSpecifiedDocumentContextParameter');
+                $xw->writeElement('ram:ID', $invoice->getSpecificationIdentifier());
+            $xw->endElement();
+        $xw->endElement();
     }
 
-    protected static function getExchangeDocument(CrossIndustryInvoiceMinimum $invoice)
+    protected static function setExchangeDocument(\XMLWriter $xw, CrossIndustryInvoice $invoice)
     {
-        $format = <<<EOL
-<rsm:ExchangedDocument>
-  <ram:ID>%s</ram:ID>
-  <ram:TypeCode>%d</ram:TypeCode>
-  <ram:IssueDateTime>
-     <udt:DateTimeString format="102">%s</udt:DateTimeString>
-  </ram:IssueDateTime>
-</rsm:ExchangedDocument>
-EOL;
-        return sprintf($format, $invoice->getInvoiceNumber(), $invoice->getInvoiceType(), $invoice->getIssueDate()->format('Ymd'));
+        $xw->startElement('rsm:ExchangedDocument');
+            $xw->writeElement('ram:ID', $invoice->getInvoiceNumber());
+            $xw->writeElement('ram:TypeCode', $invoice->getInvoiceType());
+            $xw->startElement('ram:IssueDateTime');
+                $xw->startElement('udt:DateTimeString');
+                $xw->writeAttribute('format', '102');
+                $xw->text($invoice->getIssueDate()->format('Ymd'));
+                $xw->endElement();
+            $xw->endElement();
+
+            foreach($invoice->getNotes() as $code => $note){
+                $xw->startElement('ram:IncludedNote');
+                    $xw->writeElement('ram:Content', $note);
+                    $xw->writeElement('ram:SubjectCode', $code);
+                $xw->endElement();
+            }
+        $xw->endElement();
     }
 
-    protected static function getLegalEntity(LegalEntity $legalEntity)
+    protected static function setSupplyChainTradeTransaction(\XMLWriter $xw, CrossIndustryInvoice $invoice)
     {
-        return
-            sprintf('<ram:Name>%s</ram:Name>', $legalEntity->getName())
-            .sprintf('<ram:SpecifiedLegalOrganization><ram:ID schemeID="0002">%s</ram:ID></ram:SpecifiedLegalOrganization>', $legalEntity->getSiret())
-            .($legalEntity->getAddress() ?
-                sprintf('<ram:PostalTradeAddress>%s</ram:PostalTradeAddress>', self::getAddress($legalEntity->getAddress())) : '')
-            .($legalEntity->getVatIdentifier() ?
-                sprintf('<ram:SpecifiedTaxRegistration><ram:ID schemeID="VA">%s</ram:ID></ram:SpecifiedTaxRegistration>', $legalEntity->getVatIdentifier()) : '')
-        ;
+        $xw->startElement('rsm:SupplyChainTradeTransaction');
+            $xw->startElement('ram:ApplicableHeaderTradeAgreement');
+                $xw->startElement('ram:SellerTradeParty');
+                    self::setLegalEntity($xw, $invoice->getSeller());
+                $xw->endElement();
+                $xw->startElement('ram:BuyerTradeParty');
+                    self::setLegalEntity($xw, $invoice->getBuyer());
+                $xw->endElement();
+            $xw->endElement();
+            $xw->startElement('ram:ApplicableHeaderTradeDelivery');
+                // TODO
+            $xw->endElement();
+            $xw->startElement('ram:ApplicableHeaderTradeSettlement');
+                self::setTradeSettlement($xw, $invoice);
+            $xw->endElement();
+        $xw->endElement();
     }
 
-    protected static function getAddress(Address $address)
+    protected static function setLegalEntity(\XMLWriter $xw, LegalEntity $legalEntity)
     {
-        $xmlAddress = sprintf('<ram:CountryID>%s</ram:CountryID>', $address->getCountryId());
+        $xw->writeElement('ram:Name', $legalEntity->getName());
+        $xw->startElement('ram:SpecifiedLegalOrganization');
+            $xw->startElement('ram:ID');
+            $xw->writeAttribute('schemeID', '0002');
+            $xw->text($legalEntity->getSiret());
+            $xw->endElement();
+        $xw->endElement();
+        if($legalEntity->getAddress()){
+            $xw->startElement('ram:PostalTradeAddress');
+            self::setAddress($xw, $legalEntity->getAddress());
+            $xw->endElement();
+        }
+        if($legalEntity->getVatIdentifier()){
+            $xw->startElement('ram:SpecifiedTaxRegistration');
+                $xw->startElement('ram:ID');
+                $xw->writeAttribute('schemeID', 'VA');
+                $xw->text($legalEntity->getVatIdentifier());
+                $xw->endElement();
+            $xw->endElement();
+        }
+    }
+
+    protected static function setAddress(\XMLWriter $xw, Address $address)
+    {
+        $xw->writeElement('ram:CountryID', $address->getCountryId());
         if($address->getLines()){
             $lines = array_filter(array_map('trim', explode("\n", $address->getLines())));
             if(count($lines) > 3){
@@ -94,46 +120,28 @@ EOL;
 
             $lines = array_combine(array_slice(['One', 'Two', 'Three'], 0, count($lines)), $lines);
             foreach($lines as $i => $line){
-                $xmlAddress .= "<ram:Line$i>$line</ram:LineTwo>";
+                $xw->writeElement("ram:Line$i", $line);
             }
         }
         if($address->getZipCode()){
-            $xmlAddress .= sprintf('<ram:PostcodeCode>%s</ram:PostcodeCode>', $address->getZipCode());
+            $xw->writeElement('ram:PostcodeCode', $address->getZipCode());
         }
         if($address->getCityName()){
-            $xmlAddress .= sprintf('<ram:CityName>%s</ram:CityName>', $address->getCityName());
+            $xw->writeElement('ram:CityName', $address->getCityName());
         }
-
-        return $xmlAddress;
     }
 
-    protected static function getTradeSettlement(CrossIndustryInvoiceMinimum $invoice)
+    protected static function setTradeSettlement(\XMLWriter $xw, CrossIndustryInvoice $invoice)
     {
-        $monetarySummation = self::getMonetarySummation($invoice);
-        $format = <<<EOL
-<ram:ApplicableHeaderTradeSettlement>
-    <ram:InvoiceCurrencyCode>%s</ram:InvoiceCurrencyCode>
-    $monetarySummation
-</ram:ApplicableHeaderTradeSettlement>
-EOL;
-        return sprintf($format, $invoice->getCurrencyCode());
+        $xw->writeElement('ram:InvoiceCurrencyCode', $invoice->getCurrencyCode());
+        $xw->startElement('ram:SpecifiedTradeSettlementHeaderMonetarySummation');
+            $xw->writeElement('ram:TaxBasisTotalAmount', sprintf('%01.2F', $invoice->getTaxBasisTotalAmount()));
+            $xw->startElement('ram:TaxTotalAmount');
+                $xw->writeAttribute('currencyID', $invoice->getCurrencyCode());
+                $xw->text(sprintf('%01.2F', $invoice->getTaxTotalAmount()));
+            $xw->endElement();
+            $xw->writeElement('ram:GrandTotalAmount', sprintf('%01.2F', $invoice->getGrandTotalAmount()));
+            $xw->writeElement('ram:DuePayableAmount', sprintf('%01.2F', $invoice->getDuePayableAmount()));
+        $xw->endElement();
     }
-
-    protected static function getMonetarySummation(CrossIndustryInvoiceMinimum $invoice)
-    {
-        $elems = [
-            sprintf('<ram:TaxBasisTotalAmount>%01.2F</ram:TaxBasisTotalAmount>', $invoice->getTaxBasisTotalAmount()),
-            sprintf('<ram:TaxTotalAmount currencyID="%s">%01.2F</ram:TaxTotalAmount>', $invoice->getCurrencyCode(), $invoice->getTaxTotalAmount()),
-            sprintf('<ram:GrandTotalAmount>%01.2F</ram:GrandTotalAmount>', $invoice->getGrandTotalAmount()),
-            sprintf('<ram:DuePayableAmount>%01.2F</ram:DuePayableAmount>', $invoice->getDuePayableAmount()),
-        ];
-
-        $elems = implode("\n", $elems);
-        return <<<EOL
-<ram:SpecifiedTradeSettlementHeaderMonetarySummation>
-$elems
-</ram:SpecifiedTradeSettlementHeaderMonetarySummation>
-EOL;
-    }
-
 }

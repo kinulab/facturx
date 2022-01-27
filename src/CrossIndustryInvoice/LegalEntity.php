@@ -6,7 +6,7 @@ class LegalEntity
 {
 
     protected string $name;
-    protected string $siret;
+    protected ?string $siret = null;
     protected ?Address $address = null;
     protected string $vatIdentifier;
 
@@ -31,7 +31,7 @@ class LegalEntity
     /**
      * @return string
      */
-    public function getSiret(): string
+    public function getSiret(): ?string
     {
         return $this->siret;
     }
