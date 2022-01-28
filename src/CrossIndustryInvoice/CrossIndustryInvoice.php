@@ -29,6 +29,8 @@ class CrossIndustryInvoice
 
     // optionnal
     protected array $notes = [];
+    protected ?string $contractNumber;
+    protected ?string $saleOrderNumber;
 
     const INVOICE_TYPE_COMMERCIAL_INVOICE = 380;
     const INVOICE_TYPE_CREDIT_NOTE = 381;
@@ -267,6 +269,39 @@ class CrossIndustryInvoice
         return $this;
     }
 
+    /**
+     * @return string|null
+     */
+    public function getContractNumber(): ?string
+    {
+        return $this->contractNumber;
+    }
 
+    /**
+     * @param string|null $contractNumber
+     * @return CrossIndustryInvoice
+     */
+    public function setContractNumber(?string $contractNumber): CrossIndustryInvoice
+    {
+        $this->contractNumber = $contractNumber;
+        return $this;
+    }
 
+    /**
+     * @return string|null
+     */
+    public function getSaleOrderNumber(): ?string
+    {
+        return $this->saleOrderNumber;
+    }
+
+    /**
+     * @param string|null $saleOrderNumber
+     * @return CrossIndustryInvoice
+     */
+    public function setSaleOrderNumber(?string $saleOrderNumber): CrossIndustryInvoice
+    {
+        $this->saleOrderNumber = $saleOrderNumber;
+        return $this;
+    }
 }

@@ -75,6 +75,16 @@ class XmlWriter
                 $xw->startElement('ram:BuyerTradeParty');
                     self::setLegalEntity($xw, $invoice->getBuyer());
                 $xw->endElement();
+                if($invoice->getSaleOrderNumber()){
+                    $xw->startElement('ram:BuyerOrderReferencedDocument');
+                        $xw->writeElement('ram:IssuerAssignedID', $invoice->getSaleOrderNumber());
+                    $xw->endElement();
+                }
+                if($invoice->getContractNumber()){
+                    $xw->startElement('ram:ContractReferencedDocument');
+                        $xw->writeElement('ram:IssuerAssignedID', $invoice->getContractNumber());
+                    $xw->endElement();
+                }
             $xw->endElement();
             $xw->startElement('ram:ApplicableHeaderTradeDelivery');
                 // TODO
