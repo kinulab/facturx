@@ -121,7 +121,9 @@ class XmlWriter
 
     protected static function setAddress(\XMLWriter $xw, Address $address)
     {
-        $xw->writeElement('ram:CountryID', $address->getCountryId());
+        if($address->getZipCode()){
+            $xw->writeElement('ram:PostcodeCode', $address->getZipCode());
+        }
         if($address->getLines()){
             $lines = array_filter(array_map('trim', explode("\n", $address->getLines())));
             if(count($lines) > 3){
@@ -133,12 +135,10 @@ class XmlWriter
                 $xw->writeElement("ram:Line$i", $line);
             }
         }
-        if($address->getZipCode()){
-            $xw->writeElement('ram:PostcodeCode', $address->getZipCode());
-        }
         if($address->getCityName()){
             $xw->writeElement('ram:CityName', $address->getCityName());
         }
+        $xw->writeElement('ram:CountryID', $address->getCountryId());
     }
 
     protected static function setTradeSettlement(\XMLWriter $xw, CrossIndustryInvoice $invoice)

@@ -29,8 +29,8 @@ class CrossIndustryInvoice
 
     // optionnal
     protected array $notes = [];
-    protected ?string $contractNumber;
-    protected ?string $saleOrderNumber;
+    protected ?string $contractNumber = null;
+    protected ?string $saleOrderNumber = null;
 
     const INVOICE_TYPE_COMMERCIAL_INVOICE = 380;
     const INVOICE_TYPE_CREDIT_NOTE = 381;
