@@ -50,10 +50,7 @@ class XmlWriter
             $xw->writeElement('ram:ID', $invoice->getInvoiceNumber());
             $xw->writeElement('ram:TypeCode', $invoice->getInvoiceType());
             $xw->startElement('ram:IssueDateTime');
-                $xw->startElement('udt:DateTimeString');
-                $xw->writeAttribute('format', '102');
-                $xw->text($invoice->getIssueDate()->format('Ymd'));
-                $xw->endElement();
+                self::generateUdtDate($xw, $invoice->getIssueDate());
             $xw->endElement();
 
             foreach($invoice->getNotes() as $code => $note){
@@ -144,6 +141,11 @@ class XmlWriter
     protected static function setTradeSettlement(\XMLWriter $xw, CrossIndustryInvoice $invoice)
     {
         $xw->writeElement('ram:InvoiceCurrencyCode', $invoice->getCurrencyCode());
+        $xw->startElement('ram:SpecifiedTradePaymentTerms');
+            $xw->startElement('ram:DueDateDateTime');
+                self::generateUdtDate($xw, $invoice->getDueDate());
+            $xw->endElement();
+        $xw->endElement();
         $xw->startElement('ram:SpecifiedTradeSettlementHeaderMonetarySummation');
             $xw->writeElement('ram:TaxBasisTotalAmount', sprintf('%01.2F', $invoice->getTaxBasisTotalAmount()));
             $xw->startElement('ram:TaxTotalAmount');
@@ -152,6 +154,14 @@ class XmlWriter
             $xw->endElement();
             $xw->writeElement('ram:GrandTotalAmount', sprintf('%01.2F', $invoice->getGrandTotalAmount()));
             $xw->writeElement('ram:DuePayableAmount', sprintf('%01.2F', $invoice->getDuePayableAmount()));
+        $xw->endElement();
+    }
+
+    protected static function generateUdtDate(\XMLWriter $xw, \DateTimeInterface $dateTime)
+    {
+        $xw->startElement('udt:DateTimeString');
+        $xw->writeAttribute('format', '102');
+        $xw->text($dateTime->format('Ymd'));
         $xw->endElement();
     }
 }

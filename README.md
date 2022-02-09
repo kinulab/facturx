@@ -21,6 +21,7 @@ $invoice = new \Kinulab\Facturx\CrossIndustryInvoice\CrossIndustryInvoice(
 $invoice->setInvoiceNumber("FC123456789");
 $invoice->setInvoiceType(Kinulab\Facturx\CrossIndustryInvoice\CrossIndustryInvoice::INVOICE_TYPE_COMMERCIAL_INVOICE);
 $invoice->setIssueDate( new \DateTime('today') );
+$invoice->setDueDate( (new \DateTime('today'))->modify('+30 days') );
 $invoice->setSeller( new \Kinulab\Facturx\CrossIndustryInvoice\LegalEntity() );
 $invoice->setBuyer( new \Kinulab\Facturx\CrossIndustryInvoice\LegalEntity() );
 $invoice->setCurrencyCode('EUR');

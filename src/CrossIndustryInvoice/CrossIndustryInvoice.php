@@ -19,6 +19,7 @@ class CrossIndustryInvoice
     protected string $invoiceNumber;
     protected int $invoiceType;
     protected \DateTimeInterface $issueDate;
+    protected \DateTimeInterface $dueDate;
     protected LegalEntity $seller;
     protected LegalEntity $buyer;
     protected string $currencyCode;
@@ -111,6 +112,24 @@ class CrossIndustryInvoice
     public function setIssueDate(\DateTimeInterface $issueDate)
     {
         $this->issueDate = $issueDate;
+        return $this;
+    }
+
+    /**
+     * @return \DateTimeInterface
+     */
+    public function getDueDate()
+    {
+        return $this->dueDate;
+    }
+
+    /**
+     * @param \DateTimeInterface $dueDate
+     * @return CrossIndustryInvoice
+     */
+    public function setDueDate(\DateTimeInterface $dueDate)
+    {
+        $this->dueDate = $dueDate;
         return $this;
     }
 
