@@ -23,10 +23,13 @@ class CrossIndustryInvoice
     protected LegalEntity $seller;
     protected LegalEntity $buyer;
     protected string $currencyCode;
+    protected int $paymentMeansCode;
+    protected float $lineTotalAmount;
     protected float $taxBasisTotalAmount;
     protected float $taxTotalAmount;
     protected float $grandTotalAmount;
     protected float $duePayableAmount;
+    protected array $vatDetails = [];
 
     // optionnal
     protected array $notes = [];
@@ -38,6 +41,12 @@ class CrossIndustryInvoice
     const INVOICE_TYPE_CORRECTED_INVOICE = 384;
     const INVOICE_TYPE_PREPAYMENT_INVOICE = 386;
     const INVOICE_TYPE_SELF_BILLED_INVOICE = 389;
+
+    const PAYMENT_MEANS_CODE_CASH = 10;
+    const PAYMENT_MEANS_CODE_CHEQUE = 20;
+    const PAYMENT_MEANS_CODE_BANK_TRANSFER = 30;
+    const PAYMENT_MEANS_CODE_CARD = 48;
+    const PAYMENT_DIRECT_CODE_DEBIT = 49;
 
     const NOTE_GENERAL_INFORMATION = 'AAI'; // General information
     const NOTE_PAYMENT_TERM = 'AAB'; // Payment term
@@ -188,6 +197,42 @@ class CrossIndustryInvoice
     }
 
     /**
+     * @return int
+     */
+    public function getPaymentMeansCode(): int
+    {
+        return $this->paymentMeansCode;
+    }
+
+    /**
+     * @param int $paymentMeansCode
+     * @return CrossIndustryInvoice
+     */
+    public function setPaymentMeansCode(int $paymentMeansCode): CrossIndustryInvoice
+    {
+        $this->paymentMeansCode = $paymentMeansCode;
+        return $this;
+    }
+
+    /**
+     * @return float
+     */
+    public function getLineTotalAmount(): float
+    {
+        return $this->lineTotalAmount;
+    }
+
+    /**
+     * @param float $lineTotalAmount
+     * @return CrossIndustryInvoice
+     */
+    public function setLineTotalAmount(float $lineTotalAmount): CrossIndustryInvoice
+    {
+        $this->lineTotalAmount = $lineTotalAmount;
+        return $this;
+    }
+
+    /**
      * @return float
      */
     public function getTaxBasisTotalAmount(): float
@@ -256,6 +301,30 @@ class CrossIndustryInvoice
     public function setDuePayableAmount(float $duePayableAmount): CrossIndustryInvoice
     {
         $this->duePayableAmount = $duePayableAmount;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getVatDetails(): array
+    {
+        return $this->vatDetails;
+    }
+
+    public function addVatDetail(VatDetail $detail): CrossIndustryInvoice
+    {
+        $this->vatDetails[] = $detail;
+        return $this;
+    }
+
+    /**
+     * @param array $vatDetails
+     * @return CrossIndustryInvoice
+     */
+    public function setVatDetails(array $vatDetails): CrossIndustryInvoice
+    {
+        $this->vatDetails = $vatDetails;
         return $this;
     }
 

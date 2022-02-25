@@ -140,13 +140,30 @@ class XmlWriter
 
     protected static function setTradeSettlement(\XMLWriter $xw, CrossIndustryInvoice $invoice)
     {
+        // Si prelevement sepa : <ram:CreditorReferenceID>REFERENCE</ram:CreditorReferenceID>
+        // Si par bonheur, le client paie, on voudrait bien qu'il utilise cette référence dans le libelle de l'opération : <ram:PaymentReference>F20180023BUYER</ram:PaymentReference>
         $xw->writeElement('ram:InvoiceCurrencyCode', $invoice->getCurrencyCode());
+
+        $xw->startElement('ram:PayeeTradeParty');
+            self::setLegalEntity($xw, $invoice->getSeller()); //a modifier l'entitée du bénéficiaire (si différent du vendeur)
+        $xw->endElement();
+
+        // Moyen de paiement
+        $xw->startElement('ram:SpecifiedTradeSettlementPaymentMeans');
+            $xw->writeElement('ram:TypeCode', $invoice->getPaymentMeansCode());
+        $xw->endElement();
+
+        foreach($invoice->getVatDetails() as $vatDetail){
+            self::generateApplicableTradeTax($xw, $vatDetail);
+        }
+
         $xw->startElement('ram:SpecifiedTradePaymentTerms');
             $xw->startElement('ram:DueDateDateTime');
                 self::generateUdtDate($xw, $invoice->getDueDate());
             $xw->endElement();
         $xw->endElement();
         $xw->startElement('ram:SpecifiedTradeSettlementHeaderMonetarySummation');
+            $xw->writeElement('ram:LineTotalAmount', sprintf('%01.2F', $invoice->getTaxBasisTotalAmount()));
             $xw->writeElement('ram:TaxBasisTotalAmount', sprintf('%01.2F', $invoice->getTaxBasisTotalAmount()));
             $xw->startElement('ram:TaxTotalAmount');
                 $xw->writeAttribute('currencyID', $invoice->getCurrencyCode());
@@ -162,6 +179,20 @@ class XmlWriter
         $xw->startElement('udt:DateTimeString');
         $xw->writeAttribute('format', '102');
         $xw->text($dateTime->format('Ymd'));
+        $xw->endElement();
+    }
+
+    protected static function generateApplicableTradeTax(\XMLWriter $xw, VatDetail $vatDetail)
+    {
+        $xw->startElement('ram:ApplicableTradeTax');
+            $xw->writeElement('ram:CalculatedAmount', $vatDetail->getCalculatedAmount());
+            $xw->writeElement('ram:TypeCode', $vatDetail->getTypeCode());
+            if($vatDetail->getExemptionReason()){
+                $xw->writeElement('ram:ExemptionReason', $vatDetail->getExemptionReason());
+            }
+            $xw->writeElement('ram:BasisAmount', $vatDetail->getBasisAmount());
+            $xw->writeElement('ram:CategoryCode', $vatDetail->getCategoryCode());
+            $xw->writeElement('ram:RateApplicablePercent', $vatDetail->getRateApplicablePercent());
         $xw->endElement();
     }
 }
