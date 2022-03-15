@@ -185,14 +185,14 @@ class XmlWriter
     protected static function generateApplicableTradeTax(\XMLWriter $xw, VatDetail $vatDetail)
     {
         $xw->startElement('ram:ApplicableTradeTax');
-            $xw->writeElement('ram:CalculatedAmount', $vatDetail->getCalculatedAmount());
+            $xw->writeElement('ram:CalculatedAmount', sprintf('%01.2F', $vatDetail->getCalculatedAmount()));
             $xw->writeElement('ram:TypeCode', $vatDetail->getTypeCode());
             if($vatDetail->getExemptionReason()){
                 $xw->writeElement('ram:ExemptionReason', $vatDetail->getExemptionReason());
             }
-            $xw->writeElement('ram:BasisAmount', $vatDetail->getBasisAmount());
+            $xw->writeElement('ram:BasisAmount', sprintf('%01.2F', $vatDetail->getBasisAmount()));
             $xw->writeElement('ram:CategoryCode', $vatDetail->getCategoryCode());
-            $xw->writeElement('ram:RateApplicablePercent', $vatDetail->getRateApplicablePercent());
+            $xw->writeElement('ram:RateApplicablePercent', sprintf('%01.2F', $vatDetail->getRateApplicablePercent()));
         $xw->endElement();
     }
 }
