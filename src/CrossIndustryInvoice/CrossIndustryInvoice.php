@@ -35,6 +35,7 @@ class CrossIndustryInvoice
     protected array $notes = [];
     protected ?string $contractNumber = null;
     protected ?string $saleOrderNumber = null;
+    protected array $precedingInvoiceReference = [];
 
     const INVOICE_TYPE_COMMERCIAL_INVOICE = 380;
     const INVOICE_TYPE_CREDIT_NOTE = 381;
@@ -392,4 +393,32 @@ class CrossIndustryInvoice
         $this->saleOrderNumber = $saleOrderNumber;
         return $this;
     }
+
+    /**
+     * @return InvoiceReference[]
+     */
+    public function getPrecedingInvoiceReference(): array
+    {
+        return $this->precedingInvoiceReference;
+    }
+
+    /**
+     * @return array
+     */
+    public function addPrecedingInvoiceReference(InvoiceReference $invoiceReference): CrossIndustryInvoice
+    {
+        $this->precedingInvoiceReference[] = $invoiceReference;
+        return $this;
+    }
+
+    /**
+     * @param InvoiceReference[] $precedingInvoiceReference
+     * @return CrossIndustryInvoice
+     */
+    public function setPrecedingInvoiceReference(array $precedingInvoiceReference): CrossIndustryInvoice
+    {
+        $this->precedingInvoiceReference = $precedingInvoiceReference;
+        return $this;
+    }
+
 }

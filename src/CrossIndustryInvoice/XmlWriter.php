@@ -50,7 +50,7 @@ class XmlWriter
             $xw->writeElement('ram:ID', $invoice->getInvoiceNumber());
             $xw->writeElement('ram:TypeCode', $invoice->getInvoiceType());
             $xw->startElement('ram:IssueDateTime');
-                self::generateUdtDate($xw, $invoice->getIssueDate());
+                self::generateDateTime($xw, $invoice->getIssueDate());
             $xw->endElement();
 
             foreach($invoice->getNotes() as $code => $note){
@@ -159,7 +159,7 @@ class XmlWriter
 
         $xw->startElement('ram:SpecifiedTradePaymentTerms');
             $xw->startElement('ram:DueDateDateTime');
-                self::generateUdtDate($xw, $invoice->getDueDate());
+                self::generateDateTime($xw, $invoice->getDueDate());
             $xw->endElement();
         $xw->endElement();
         $xw->startElement('ram:SpecifiedTradeSettlementHeaderMonetarySummation');
@@ -172,11 +172,22 @@ class XmlWriter
             $xw->writeElement('ram:GrandTotalAmount', sprintf('%01.2F', $invoice->getGrandTotalAmount()));
             $xw->writeElement('ram:DuePayableAmount', sprintf('%01.2F', $invoice->getDuePayableAmount()));
         $xw->endElement();
+
+        foreach($invoice->getPrecedingInvoiceReference() as $precedingInvoice){
+            $xw->startElement('ram:InvoiceReferencedDocument');
+                $xw->writeElement('ram:IssuerAssignedID', $precedingInvoice->getNumber());
+                if($precedingInvoice->getIssueDate()){
+                    $xw->startElement('ram:FormattedIssueDateTime');
+                        self::generateDateTime($xw, $precedingInvoice->getIssueDate(), 'qdt');
+                    $xw->endElement();
+                }
+            $xw->endElement();
+        }
     }
 
-    protected static function generateUdtDate(\XMLWriter $xw, \DateTimeInterface $dateTime)
+    protected static function generateDateTime(\XMLWriter $xw, \DateTimeInterface $dateTime, string $ns = 'udt')
     {
-        $xw->startElement('udt:DateTimeString');
+        $xw->startElement($ns.':DateTimeString');
         $xw->writeAttribute('format', '102');
         $xw->text($dateTime->format('Ymd'));
         $xw->endElement();
