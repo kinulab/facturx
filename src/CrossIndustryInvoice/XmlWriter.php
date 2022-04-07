@@ -2,6 +2,10 @@
 
 namespace Kinulab\Facturx\CrossIndustryInvoice;
 
+use Kinulab\Facturx\CrossIndustryInvoice\Payment\CreditTransfert;
+use Kinulab\Facturx\CrossIndustryInvoice\Payment\DirectDebit;
+use Kinulab\Facturx\CrossIndustryInvoice\Payment\FactoredPayment;
+
 class XmlWriter
 {
 
@@ -98,7 +102,7 @@ class XmlWriter
         $xw->startElement('ram:SpecifiedLegalOrganization');
             $xw->startElement('ram:ID');
             $xw->writeAttribute('schemeID', '0002');
-            $xw->text($legalEntity->getSiret());
+            $xw->text($legalEntity->getSiret() ?? $legalEntity->getSiren() );
             $xw->endElement();
         $xw->endElement();
         if($legalEntity->getAddress()){
@@ -140,17 +144,40 @@ class XmlWriter
 
     protected static function setTradeSettlement(\XMLWriter $xw, CrossIndustryInvoice $invoice)
     {
-        // Si prelevement sepa : <ram:CreditorReferenceID>REFERENCE</ram:CreditorReferenceID>
-        // Si par bonheur, le client paie, on voudrait bien qu'il utilise cette référence dans le libelle de l'opération : <ram:PaymentReference>F20180023BUYER</ram:PaymentReference>
+        if($invoice->getPaymentInstruction() instanceof DirectDebit){
+            $xw->writeElement('ram:CreditorReferenceID', $invoice->getPaymentInstruction()->getCreditorIdentifier());
+            $xw->writeElement('ram:PaymentReference', $invoice->getPaymentInstruction()->getPaymentReference());
+        }
+
         $xw->writeElement('ram:InvoiceCurrencyCode', $invoice->getCurrencyCode());
 
         $xw->startElement('ram:PayeeTradeParty');
-            self::setLegalEntity($xw, $invoice->getSeller()); //a modifier l'entitée du bénéficiaire (si différent du vendeur)
+            if($invoice->getPayee()){
+                self::setLegalEntity($xw, $invoice->getPayee());
+            }elseif( $invoice->getPaymentInstruction() instanceof FactoredPayment ){
+                self::setLegalEntity($xw, $invoice->getPaymentInstruction()->getPayee());
+            }else{
+                self::setLegalEntity($xw, $invoice->getSeller());
+            }
         $xw->endElement();
 
         // Moyen de paiement
         $xw->startElement('ram:SpecifiedTradeSettlementPaymentMeans');
-            $xw->writeElement('ram:TypeCode', $invoice->getPaymentMeansCode());
+            if($invoice->getPaymentInstruction()){
+                $xw->writeElement('ram:TypeCode', $invoice->getPaymentInstruction()->getPaymentMeansCode());
+            }else{
+                $xw->writeElement('ram:TypeCode', $invoice->getPaymentMeansCode());
+            }
+
+        if($invoice->getPaymentInstruction() instanceof DirectDebit){
+            $xw->startElement('ram:PayerPartyDebtorFinancialAccount');
+            $xw->writeElement('ram:IBANID', $invoice->getPaymentInstruction()->getDebitedAccount()->getIban());
+            $xw->endElement();
+        }elseif($invoice->getPaymentInstruction() instanceof CreditTransfert || $invoice->getPaymentInstruction() instanceof FactoredPayment){
+            $xw->startElement('ram:PayeePartyCreditorFinancialAccount');
+            $xw->writeElement('ram:IBANID', $invoice->getPaymentInstruction()->getAccount()->getIban());
+            $xw->endElement();
+        }
         $xw->endElement();
 
         foreach($invoice->getVatDetails() as $vatDetail){

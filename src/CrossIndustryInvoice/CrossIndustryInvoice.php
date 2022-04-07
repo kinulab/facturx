@@ -2,6 +2,8 @@
 
 namespace Kinulab\Facturx\CrossIndustryInvoice;
 
+use Kinulab\Facturx\CrossIndustryInvoice\Payment\PaymentInstructionInterface;
+
 class CrossIndustryInvoice
 {
 
@@ -36,6 +38,8 @@ class CrossIndustryInvoice
     protected ?string $contractNumber = null;
     protected ?string $saleOrderNumber = null;
     protected array $precedingInvoiceReference = [];
+    protected ?LegalEntity $payee = null;
+    protected ?PaymentInstructionInterface $paymentInstruction;
 
     const INVOICE_TYPE_COMMERCIAL_INVOICE = 380;
     const INVOICE_TYPE_CREDIT_NOTE = 381;
@@ -418,6 +422,42 @@ class CrossIndustryInvoice
     public function setPrecedingInvoiceReference(array $precedingInvoiceReference): CrossIndustryInvoice
     {
         $this->precedingInvoiceReference = $precedingInvoiceReference;
+        return $this;
+    }
+
+    /**
+     * @return LegalEntity|null
+     */
+    public function getPayee(): ?LegalEntity
+    {
+        return $this->payee;
+    }
+
+    /**
+     * @param LegalEntity|null $payee
+     * @return CrossIndustryInvoice
+     */
+    public function setPayee(?LegalEntity $payee): CrossIndustryInvoice
+    {
+        $this->payee = $payee;
+        return $this;
+    }
+
+    /**
+     * @return PaymentInstructionInterface|null
+     */
+    public function getPaymentInstruction(): ?PaymentInstructionInterface
+    {
+        return $this->paymentInstruction;
+    }
+
+    /**
+     * @param PaymentInstructionInterface|null $paymentInstruction
+     * @return CrossIndustryInvoice
+     */
+    public function setPaymentInstruction(?PaymentInstructionInterface $paymentInstruction): CrossIndustryInvoice
+    {
+        $this->paymentInstruction = $paymentInstruction;
         return $this;
     }
 
