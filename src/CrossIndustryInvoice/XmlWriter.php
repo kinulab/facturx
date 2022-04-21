@@ -188,6 +188,9 @@ class XmlWriter
             $xw->startElement('ram:DueDateDateTime');
                 self::generateDateTime($xw, $invoice->getDueDate());
             $xw->endElement();
+            if($invoice->getPaymentInstruction() instanceof DirectDebit){
+                $xw->writeElement('ram:DirectDebitMandateID', $invoice->getPaymentInstruction()->getMandateID());
+            }
         $xw->endElement();
         $xw->startElement('ram:SpecifiedTradeSettlementHeaderMonetarySummation');
             $xw->writeElement('ram:LineTotalAmount', sprintf('%01.2F', $invoice->getTaxBasisTotalAmount()));

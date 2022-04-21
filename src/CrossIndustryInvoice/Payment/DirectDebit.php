@@ -9,12 +9,14 @@ class DirectDebit implements PaymentInstructionInterface
 {
 
     protected string $creditorIdentifier;
+    protected string $mandateID; // RUM
     protected string $paymentReference;
     protected BankAccount $debitedAccount;
 
-    public function __construct(string $creditorIdentifier, string $paymentReference, BankAccount $debitedAccount)
+    public function __construct(string $creditorIdentifier, string $mandateID, string $paymentReference, BankAccount $debitedAccount)
     {
         $this->creditorIdentifier = $creditorIdentifier;
+        $this->mandateID = $mandateID;
         $this->paymentReference = $paymentReference;
         $this->debitedAccount = $debitedAccount;
     }
@@ -33,6 +35,22 @@ class DirectDebit implements PaymentInstructionInterface
     }
 
     /**
+     * @return string
+     */
+    public function getMandateID(): string
+    {
+        return $this->mandateID;
+    }
+
+    /**
+     * @param string $mandateID
+     */
+    public function setMandateID(string $mandateID): void
+    {
+        $this->mandateID = $mandateID;
+    }
+
+    /**
      * @param string $creditorIdentifier
      * @return DirectDebit
      */
@@ -40,6 +58,38 @@ class DirectDebit implements PaymentInstructionInterface
     {
         $this->creditorIdentifier = $creditorIdentifier;
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPaymentReference(): string
+    {
+        return $this->paymentReference;
+    }
+
+    /**
+     * @param string $paymentReference
+     */
+    public function setPaymentReference(string $paymentReference): void
+    {
+        $this->paymentReference = $paymentReference;
+    }
+
+    /**
+     * @return BankAccount
+     */
+    public function getDebitedAccount(): BankAccount
+    {
+        return $this->debitedAccount;
+    }
+
+    /**
+     * @param BankAccount $debitedAccount
+     */
+    public function setDebitedAccount(BankAccount $debitedAccount): void
+    {
+        $this->debitedAccount = $debitedAccount;
     }
 
 }
