@@ -35,6 +35,7 @@ class CrossIndustryInvoice
 
     // optionnal
     protected array $notes = [];
+    protected ?string $buyerReference = null;
     protected ?string $contractNumber = null;
     protected ?string $saleOrderNumber = null;
     protected array $precedingInvoiceReference = [];
@@ -359,6 +360,24 @@ class CrossIndustryInvoice
     public function addNote(string $code, string $note): CrossIndustryInvoice
     {
         $this->notes[$code] = $note;
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getBuyerReference(): ?string
+    {
+        return $this->buyerReference;
+    }
+
+    /**
+     * @param string|null $buyerReference
+     * @return CrossIndustryInvoice
+     */
+    public function setBuyerReference(?string $buyerReference): CrossIndustryInvoice
+    {
+        $this->buyerReference = $buyerReference;
         return $this;
     }
 

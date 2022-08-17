@@ -70,6 +70,9 @@ class XmlWriter
     {
         $xw->startElement('rsm:SupplyChainTradeTransaction');
             $xw->startElement('ram:ApplicableHeaderTradeAgreement');
+                if($invoice->getBuyerReference()){
+                    $xw->writeElement('ram:BuyerReference', $invoice->setBuyerReference());
+                }
                 $xw->startElement('ram:SellerTradeParty');
                     self::setLegalEntity($xw, $invoice->getSeller());
                 $xw->endElement();
