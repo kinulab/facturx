@@ -9,7 +9,7 @@ class LegalEntity
     protected ?string $siret = null;
     protected ?string $siren = null;
     protected ?Address $address = null;
-    protected ?string $vatIdentifier;
+    protected ?string $vatIdentifier = null;
 
     /**
      * @return string
