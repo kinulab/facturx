@@ -19,7 +19,7 @@ class VatDetail
     protected float $calculatedAmount;
     protected string $typeCode = 'VAT';
     protected ?string $exemptionReason = null;
-    protected int $basisAmount;
+    protected float $basisAmount;
     protected string $categoryCode;
     protected ?string $exemptionReasonCode = null;
     protected ?int $rateApplicablePercent = null;
@@ -79,18 +79,18 @@ class VatDetail
     }
 
     /**
-     * @return int
+     * @return float
      */
-    public function getBasisAmount(): int
+    public function getBasisAmount(): float
     {
         return $this->basisAmount;
     }
 
     /**
-     * @param int $basisAmount
+     * @param float $basisAmount
      * @return VatDetail
      */
-    public function setBasisAmount(int $basisAmount): VatDetail
+    public function setBasisAmount(float $basisAmount): VatDetail
     {
         $this->basisAmount = $basisAmount;
         return $this;
